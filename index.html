@@ -174,7 +174,7 @@ function setMouseTracker( handle, callback )
         },
         onStart = function( evt )
         {
-            evt.preventDefault();
+            evtCancel( evt );
             setOrigin( evt );
             ctx = {};
             if( callback( origin.x, origin.y, TRACK_START, ctx ) ){
