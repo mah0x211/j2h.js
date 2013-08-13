@@ -1,14 +1,46 @@
 (function(){
 'use strict';
 
+var T_ARR = 1 << 0,
+    T_OBJ = 1 << 1,
+    T_LEAF = 1 << 3;
+
 function j2h()
 {
     var obj = {},
-        delegator;
+        delegator,
+        travarse = function( obj, key )
+        {
+            if( typeof obj === 'object' )
+            {
+                if( obj instanceof Array ){
+                    delegator.openTree( T_ARR, key );
+                    obj.forEach( travarse );
+                    delegator.closeTree( T_ARR, key );
+                }
+                else
+                {
+                    delegator.openTree( T_OBJ, key );
+                    Object.keys( obj ).forEach(function(key){
+                        travarse( obj[key], key );
+                    });
+                    delegator.closeTree( T_OBJ, key );
+                }
+            }
+            else {
+                delegator.createLeaf( obj, key );
+            }
+        };
     
     this.__defineSetter__('delegator', function( newDelegator ){
         delegator = newDelegator;
     });
+    
+    this.output = function()
+    {
+        // travarse
+        travarse( obj );
+    };
     
     this.loadJSON = function( text )
     {
