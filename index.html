@@ -196,18 +196,12 @@ var JSON_PANE = {
     HTML_PANE = {
         pane: document.querySelector('#html'),
     },
+    CONTENT_HEIGHT = 0,
     MAX_HEIGHT = 0,
+    MIN_HEIGHT = 0,
     PER_HEIGHT = 0;
 
-function getPaneHeight()
-{
-    return {
-        html: HTML_PANE.pane.clientHeight,
-        json: JSON_PANE.pane.clientHeight
-    };
-}
-
-function resize( x, y, type, ctx )
+function trackResize( x, y, type, ctx )
 {
     var htmlp = HTML_PANE.pane,
         jsonp = JSON_PANE.pane;
@@ -215,10 +209,13 @@ function resize( x, y, type, ctx )
     if( type === TRACK_START ){
         ctx.height = HTML_PANE.pane.clientHeight;
     }
-    else if( type === TRACK_PROGRESS && y ){
+    else if( type === TRACK_PROGRESS && y )
+    {
         var modify = ctx.height + y;
-        htmlp.style.height = modify + 'px';
-        jsonp.style.height = MAX_HEIGHT - modify + 'px';
+        if( modify > MIN_HEIGHT && modify < MAX_HEIGHT ){
+            htmlp.style.height = modify + 'px';
+            jsonp.style.height = CONTENT_HEIGHT - modify + 'px';
+        }
     }
     else if( type === TRACK_END ){
         htmlp.style.height = HTML_PANE.pane.clientHeight / PER_HEIGHT + '%';
@@ -231,13 +228,15 @@ function resize( x, y, type, ctx )
 function initUI()
 {
     var updateConstants = function(){
-            MAX_HEIGHT = HTML_PANE.pane.clientHeight + JSON_PANE.pane.clientHeight;
-            PER_HEIGHT = MAX_HEIGHT / 100;
+            CONTENT_HEIGHT = HTML_PANE.pane.clientHeight + JSON_PANE.pane.clientHeight;
+            MAX_HEIGHT = CONTENT_HEIGHT - JSON_PANE.toolbar.clientHeight * 2;
+            MIN_HEIGHT = JSON_PANE.toolbar.clientHeight * 2;
+            PER_HEIGHT = CONTENT_HEIGHT / 100;
         };
     
     window.addEventListener('resize', updateConstants );
     updateConstants();
-    setMouseTracker( JSON_PANE.toolbar, resize );
+    setMouseTracker( JSON_PANE.toolbar, trackResize );
 }
 
 initUI();
