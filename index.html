@@ -126,7 +126,9 @@ aside > p > textarea {
 <!-- raw text -->
 <aside id="json">
 <!-- toolbar -->
-<ul><li><a href="#">apply</a></li></ul>
+<ul>
+<li><a href="#" name="apply">apply</a></li>
+</ul>
 <p><textarea></textarea></p>
 </aside>
 
@@ -195,7 +197,8 @@ function setMouseTracker( handle, callback )
 }
 
 /* interface elements */
-var JSON_PANE = {
+var J2H = new j2h(),
+    JSON_PANE = {
         pane: document.querySelector('#json'),
         toolbar: document.querySelector('#json ul'),
         textarea: document.querySelector('#json textarea')
@@ -238,6 +241,21 @@ function trackResizeView( x, y, type, ctx )
     }
     
     return true;
+}
+
+function onLoadRawJSON( evt )
+{
+    var err;
+    
+    evtCancel( evt );
+    err = J2H.loadJSON( JSON_PANE.textarea.value );
+    if( err ){
+        alert( err.stack );
+    }
+    else {
+        console.log( 'ok' );
+    }
+    return false;
 }
 
 function initTextarea()
