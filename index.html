@@ -118,22 +118,131 @@ aside > p > textarea {
 </header>
 <div class="main">
 <!-- editor -->
-<article>
-json elements
+<article id="html">
+<button>+</button>
 </article>
 
 <!-- raw text -->
-<aside>
+<aside id="json">
 <!-- toolbar -->
-<ul>
-<li><a href="#">toolbar</a></li>
-</ul>
-<p>
-<textarea>
-</textarea>
-</p>
+<ul><li><a href="#">apply</a></li></ul>
+<p><textarea></textarea></p>
 </aside>
+
 </div>
+<!-- controller -->
+<script type="text/javascript" charset="UTF-8">
+
+/* mouse tracker */
+var TRACK_START = 1 << 0,
+    TRACK_PROGRESS = 1 << 1,
+    TRACK_END = 1 << 2;
+
+function setMouseTracker( handle, callback )
+{
+    var origin = {},
+        ctx = {},
+        setOrigin = function( evt ){
+            origin.x = evt.x;
+            origin.y = evt.y;
+        },
+        sendDiff = function( evt, type )
+        {
+            if( !callback( evt.x - origin.x, evt.y - origin.y, type, ctx ) || 
+                type === TRACK_END ){
+                onFinish();
+            }
+        },
+        onFinish = function(){
+            window.removeEventListener( 'mouseup', onEnd );
+            window.removeEventListener( 'mousemove', onTrack );
+        },
+        onTrack = function( evt ){
+            sendDiff( evt, TRACK_PROGRESS );
+            return false;
+        },
+        onEnd = function( evt ){
+            sendDiff( evt, TRACK_END );
+            return false;
+        },
+        onStart = function( evt )
+        {
+            evt.preventDefault();
+            setOrigin( evt );
+            ctx = {};
+            if( callback( origin.x, origin.y, TRACK_START, ctx ) ){
+                window.addEventListener( 'mouseup', onEnd );
+                window.addEventListener( 'mousemove', onTrack );
+            }
+            return false;
+        };
+    
+    handle.addEventListener( 'mousedown', onStart );
+    
+    return {
+        clearMouseTracker: function(){
+            onFinish();
+            handle.removeEventListener( 'mousedown', onStart );
+        }
+    };
+}
+
+/* interface elements */
+var JSON_PANE = {
+        pane: document.querySelector('#json'),
+        toolbar: document.querySelector('#json ul'),
+        textarea: document.querySelector('#json textarea')
+    },
+    HTML_PANE = {
+        pane: document.querySelector('#html'),
+    },
+    MAX_HEIGHT = 0,
+    PER_HEIGHT = 0;
+
+function getPaneHeight()
+{
+    return {
+        html: HTML_PANE.pane.clientHeight,
+        json: JSON_PANE.pane.clientHeight
+    };
+}
+
+function resize( x, y, type, ctx )
+{
+    var htmlp = HTML_PANE.pane,
+        jsonp = JSON_PANE.pane;
+    
+    if( type === TRACK_START ){
+        ctx.height = HTML_PANE.pane.clientHeight;
+    }
+    else if( type === TRACK_PROGRESS && y ){
+        var modify = ctx.height + y;
+        htmlp.style.height = modify + 'px';
+        jsonp.style.height = MAX_HEIGHT - modify + 'px';
+    }
+    else if( type === TRACK_END ){
+        htmlp.style.height = HTML_PANE.pane.clientHeight / PER_HEIGHT + '%';
+        jsonp.style.height = JSON_PANE.pane.clientHeight / PER_HEIGHT + '%';
+    }
+    
+    return true;
+}
+
+function initUI()
+{
+    var updateConstants = function(){
+            MAX_HEIGHT = HTML_PANE.pane.clientHeight + JSON_PANE.pane.clientHeight;
+            PER_HEIGHT = MAX_HEIGHT / 100;
+        };
+    
+    window.addEventListener('resize', updateConstants );
+    updateConstants();
+    setMouseTracker( JSON_PANE.toolbar, resize );
+}
+
+initUI();
+
+</script>
 </body>
 </html>
 
