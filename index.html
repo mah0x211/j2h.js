@@ -139,6 +139,12 @@ var TRACK_START = 1 << 0,
     TRACK_PROGRESS = 1 << 1,
     TRACK_END = 1 << 2;
 
+function evtCancel( evt ){
+    evt.preventDefault();
+    evt.cancelBubble = true;
+    evt.returnValue = false;
+}
+
 function setMouseTracker( handle, callback )
 {
     var origin = {},
