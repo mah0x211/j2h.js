@@ -240,18 +240,48 @@ function trackResizeView( x, y, type, ctx )
     return true;
 }
 
-function initUI()
+function initTextarea()
 {
-    var updateConstants = function(){
-            CONTENT_HEIGHT = HTML_PANE.pane.clientHeight + JSON_PANE.pane.clientHeight;
-            MAX_HEIGHT = CONTENT_HEIGHT - JSON_PANE.toolbar.clientHeight * 2;
-            MIN_HEIGHT = JSON_PANE.toolbar.clientHeight * 2;
-            PER_HEIGHT = CONTENT_HEIGHT / 100;
+    var textarea = JSON_PANE.textarea,
+        // horizontal-tab
+        HT_CODE = 0x9,
+        HT_LEN = 4,
+        tabHook = function( evt )
+        {
+            if( evt.keyCode === HT_CODE )
+            {
+                var txt = textarea.value,
+                    start = textarea.selectionStart,
+                    end = textarea.selectionEnd,
+                    cursor = start + HT_LEN;
+                
+                evtCancel( evt );
+                txt = [
+                    txt.slice( 0, start ), 
+                    (new Array(HT_LEN+1)).join(' '), 
+                    txt.slice( end )
+                ].join('');
+                textarea.value = txt;
+                // set caret
+                textarea.selectionStart = cursor;
+                textarea.selectionEnd = cursor;
+            }
+            
+            return false;
         };
     
-    window.addEventListener('resize', updateConstants );
-    updateConstants();
-    setMouseTracker( JSON_PANE.toolbar, trackResize );
+    textarea.addEventListener( 'keydown', tabHook );
+}
+
+function initUI()
+{
+    initTextarea();
+    trackResizeWindow();
+    window.addEventListener('resize', trackResizeWindow );
+    setMouseTracker( JSON_PANE.toolbar, trackResizeView );
+    
+    JSON_PANE.toolbar.querySelector('a[name="apply"]')
+    .addEventListener( 'click', onLoadRawJSON );
 }
 
 initUI();
