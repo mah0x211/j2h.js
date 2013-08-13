@@ -264,7 +264,7 @@ function onLoadRawJSON( evt )
         alert( err.stack );
     }
     else {
-        console.log( 'ok' );
+        J2H.output();
     }
     return false;
 }
@@ -311,6 +311,7 @@ function initUI()
     
     JSON_PANE.toolbar.querySelector('a[name="apply"]')
     .addEventListener( 'click', onLoadRawJSON );
+    J2H.delegator = json2elm;
 }
 
 initUI();
