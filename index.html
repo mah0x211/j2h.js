@@ -19,7 +19,7 @@ h1 {
     font-size: 180%;
     line-height: 150%;
 }
-ul li {
+li {
     list-style-position: inside;
 }
 
@@ -30,7 +30,8 @@ header {
     overflow: hidden;
     color: #555;
     background-color: #000;
-    border-bottom: 1px #ddd solid;
+    border-bottom: 1px #fff solid;
+    box-shadow: 0 0 3px #ddd;
 }
 header > * {
     display: inline-block;
@@ -201,7 +202,15 @@ var JSON_PANE = {
     MIN_HEIGHT = 0,
     PER_HEIGHT = 0;
 
-function trackResize( x, y, type, ctx )
+function trackResizeWindow()
+{
+    CONTENT_HEIGHT = HTML_PANE.pane.clientHeight + JSON_PANE.pane.clientHeight;
+    MAX_HEIGHT = CONTENT_HEIGHT - JSON_PANE.toolbar.clientHeight * 2;
+    MIN_HEIGHT = JSON_PANE.toolbar.clientHeight * 2;
+    PER_HEIGHT = CONTENT_HEIGHT / 100;
+}
+
+function trackResizeView( x, y, type, ctx )
 {
     var htmlp = HTML_PANE.pane,
         jsonp = JSON_PANE.pane;
