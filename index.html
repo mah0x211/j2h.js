@@ -211,6 +211,17 @@ var J2H = new j2h(),
     MIN_HEIGHT = 0,
     PER_HEIGHT = 0;
 
+function json2elm(){}
+json2elm.openTree = function(){
+    console.log( 'open-tree', arguments );
+};
+json2elm.closeTree = function(){
+    console.log( 'close-tree', arguments );
+};
+json2elm.createLeaf = function(){
+    console.log( 'leaf', arguments );
+};
+
 function trackResizeWindow()
 {
     CONTENT_HEIGHT = HTML_PANE.pane.clientHeight + JSON_PANE.pane.clientHeight;
