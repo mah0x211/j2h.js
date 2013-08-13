@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>J2H - JSON &lt;-&gt; HTML</title>
+<script type="text/javascript" charset="UTF-8" src="j2h.js"></script>
+<style type="text/css">
+* {
+    margin: 0;
+    padding: 0;
+    font-size: 100%;
+    box-sizing: border-box;
+}
+html,body {
+    height: 100%;
+    font-family: 'Helvetica Neue';
+}
+h1 {
+    font-size: 180%;
+    line-height: 150%;
+}
+ul li {
+    list-style-position: inside;
+}
+
+header {
+    position: absolute;
+    height: 3em;
+    width: 100%;
+    overflow: hidden;
+    color: #555;
+    background-color: #000;
+    border-bottom: 1px #ddd solid;
+}
+header > * {
+    display: inline-block;
+    height: 100%;
+}
+header > h1 {
+    position: absolute;
+    padding-left: 10px;
+    color: #fff;
+}
+header > p {
+    margin-left: 5.6em;
+    padding-left: 1ex;
+    width: 100%;
+    background-color: #fcfcfc;
+}
+header > *:before {
+    display: inline-block;
+    content: '.';
+    visibility: hidden;
+    height: 100%;
+    vertical-align: middle;
+}
+
+
+.main {
+    height: 100%;
+    padding-top: 3em;
+}
+
+article {
+    height: 70%;
+    padding: 1em;
+    overflow: auto;
+    border-top: 1px #f6f6f6 solid;
+}
+
+aside {
+    height: 30%;
+    overflow: hidden;
+    background-color: #fff;
+    border-top: 1px #ccc solid;
+}
+aside > ul {
+    position: absolute;
+    height: 2em;
+    width: 100%;
+    padding: 0 1em;
+    cursor: row-resize;
+    text-align: right;
+    background-color: #eee;
+    border-bottom: 1px #ccc solid;
+}
+aside > ul li {
+    display: inline-block;
+    height: 100%;
+}
+aside > ul li:before {
+    display: inline-block;
+    content: '.';
+    visibility: hidden;
+    height: 100%;
+    vertical-align: middle;
+}
+aside > p {
+    height: 100%;
+    padding-top: 2em;
+    color: #fff;
+    border: none;
+}
+aside > p > textarea {
+    height: 100%;
+    width: 100%;
+    padding: 1em;
+    outline-width: thick;
+    background-color: transparent;
+    border: none;
+}
+</style>
+</head>
+<body>
+<header>
+<h1>J2H</h1>
+<p>JSON&lt;-&gt;HTML Editor</p>
+</header>
+<div class="main">
+<!-- editor -->
+<article>
+json elements
+</article>
+
+<!-- raw text -->
+<aside>
+<!-- toolbar -->
+<ul>
+<li><a href="#">toolbar</a></li>
+</ul>
+<p>
+<textarea>
+</textarea>
+</p>
+</aside>
+</div>
+</body>
+</html>
+
