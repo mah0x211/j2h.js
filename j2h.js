@@ -39,7 +39,9 @@ function j2h()
     this.traverse = function()
     {
         // travarse
+        delegator.begin();
         _traverse( 0, obj );
+        delegator.end();
     };
     
     this.loadJSON = function( text )
