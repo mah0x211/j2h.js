@@ -62,6 +62,10 @@ function j2h()
         
         return err;
     };
+    
+    this.toJSON = function( space, replacer ){
+        return JSON.stringify( obj, replacer, space );
+    };
 }
 
 // export constants
