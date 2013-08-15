@@ -9,7 +9,7 @@ function j2h()
 {
     var obj = {},
         delegator,
-        travarse = function( obj, key )
+        _traverse = function( lv, obj, key )
         {
             if( typeof obj === 'object' )
             {
@@ -36,10 +36,10 @@ function j2h()
         delegator = newDelegator;
     });
     
-    this.output = function()
+    this.traverse = function()
     {
         // travarse
-        travarse( obj );
+        _traverse( 0, obj );
     };
     
     this.loadJSON = function( text )
