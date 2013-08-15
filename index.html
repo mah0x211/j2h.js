@@ -15,10 +15,6 @@ html,body {
     height: 100%;
     font-family: 'Helvetica Neue';
 }
-h1 {
-    font-size: 180%;
-    line-height: 150%;
-}
 li {
     list-style-position: inside;
 }
@@ -41,6 +37,8 @@ header > h1 {
     position: absolute;
     padding-left: 10px;
     color: #fff;
+    font-size: 180%;
+    line-height: 150%;
 }
 header > p {
     margin-left: 5.6em;
@@ -56,26 +54,34 @@ header > *:before {
     vertical-align: middle;
 }
 
-
 .main {
     height: 100%;
     padding-top: 3em;
 }
 
-article {
+#html {
     height: 70%;
     padding: 1em;
     overflow: auto;
     border-top: 1px #f6f6f6 solid;
 }
+#html ul {
+    padding-left: 1.4em;
+}
+#html li {
+    border: 1px transparent solid;
+}
+#html li span {
+    display: inline-block;
+}
 
-aside {
+#json {
     height: 30%;
     overflow: hidden;
     background-color: #fff;
     border-top: 1px #ccc solid;
 }
-aside > ul {
+#json > ul {
     position: absolute;
     height: 2em;
     width: 100%;
@@ -85,24 +91,24 @@ aside > ul {
     background-color: #eee;
     border-bottom: 1px #ccc solid;
 }
-aside > ul li {
+#json > ul li {
     display: inline-block;
     height: 100%;
 }
-aside > ul li:before {
+#json > ul li:before {
     display: inline-block;
     content: '.';
     visibility: hidden;
     height: 100%;
     vertical-align: middle;
 }
-aside > p {
+#json > p {
     height: 100%;
     padding-top: 2em;
     color: #fff;
     border: none;
 }
-aside > p > textarea {
+#json > p > textarea {
     height: 100%;
     width: 100%;
     padding: 1em;
@@ -119,9 +125,7 @@ aside > p > textarea {
 </header>
 <div class="main">
 <!-- editor -->
-<article id="html">
-<button>+</button>
-</article>
+<article id="html"></article>
 
 <!-- raw text -->
 <aside id="json">
