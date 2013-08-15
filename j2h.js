@@ -3,7 +3,7 @@
 
 var T_ARR = 1 << 0,
     T_OBJ = 1 << 1,
-    T_LEAF = 1 << 3;
+    T_LEAF = 1 << 2;
 
 function j2h()
 {
@@ -63,6 +63,11 @@ function j2h()
         return err;
     };
 }
+
+// export constants
+j2h.T_ARR = T_ARR;
+j2h.T_OBJ = T_OBJ;
+j2h.T_LEAF = T_LEAF;
 
 window.j2h = j2h;
 
