@@ -14,21 +14,23 @@ function j2h()
             if( typeof obj === 'object' )
             {
                 if( obj instanceof Array ){
-                    delegator.openTree( T_ARR, key );
-                    obj.forEach( travarse );
-                    delegator.closeTree( T_ARR, key );
+                    delegator.openTree( lv, T_ARR, key );
+                    obj.forEach(function( obj, key ){
+                        _traverse( lv + 1, obj, key );
+                    });
+                    delegator.closeTree( lv, T_ARR, key );
                 }
                 else
                 {
-                    delegator.openTree( T_OBJ, key );
+                    delegator.openTree( lv, T_OBJ, key );
                     Object.keys( obj ).forEach(function(key){
-                        travarse( obj[key], key );
+                        _traverse( lv + 1, obj[key], key );
                     });
-                    delegator.closeTree( T_OBJ, key );
+                    delegator.closeTree( lv, T_OBJ, key );
                 }
             }
             else {
-                delegator.createLeaf( obj, key );
+                delegator.createLeaf( lv, T_LEAF, key, obj );
             }
         };
     
