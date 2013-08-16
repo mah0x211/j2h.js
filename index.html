@@ -14,6 +14,7 @@
 html,body {
     height: 100%;
     font-family: 'Helvetica Neue';
+    overflow: hidden;
 }
 li {
     list-style-position: inside;
@@ -21,6 +22,7 @@ li {
 
 header {
     position: absolute;
+    z-index: 32767;
     height: 3em;
     width: 100%;
     overflow: hidden;
@@ -76,7 +78,10 @@ header > *:before {
 }
 
 #json {
+    position: absolute;
+    z-index: 32766;
     height: 30%;
+    width: 100%;
     overflow: hidden;
     background-color: #fff;
     border-top: 1px #ccc solid;
@@ -116,6 +121,17 @@ header > *:before {
     background-color: transparent;
     border: none;
 }
+
+#dragGhost {
+    position: absolute;
+    color: #444;
+    border: 1px #ccc dashed;
+    z-index: 32765;
+}
+.dragTarget {
+    color: #ddd;
+}
+
 </style>
 </head>
 <body>
@@ -151,10 +167,10 @@ function evtCancel( evt ){
     evt.returnValue = false;
 }
 
-function setMouseTracker( handle, callback )
+function setMouseTracker( elm, callback )
 {
-    var origin = {},
-        ctx = {},
+    var ctx,
+        origin = {},
         setOrigin = function( evt ){
             origin.x = evt.x;
             origin.y = evt.y;
@@ -176,6 +192,7 @@ function setMouseTracker( handle, callback )
         },
         onEnd = function( evt ){
             sendDiff( evt, TRACK_END );
+            ctx = undefined;
             return false;
         },
         onStart = function( evt )
@@ -190,26 +207,23 @@ function setMouseTracker( handle, callback )
             return false;
         };
     
-    handle.addEventListener( 'mousedown', onStart );
+    elm.addEventListener( 'mousedown', onStart );
     
     return {
         clearMouseTracker: function(){
             onFinish();
-            handle.removeEventListener( 'mousedown', onStart );
+            elm.removeEventListener( 'mousedown', onStart );
         }
     };
 }
 
-/* interface elements */
 var J2H = new j2h(),
-    JSON_PANE = {
-        pane: document.querySelector('#json'),
-        toolbar: document.querySelector('#json ul'),
-        textarea: document.querySelector('#json textarea')
-    },
-    HTML_PANE = {
-        pane: document.querySelector('#html'),
-    },
+    // interface elements
+    JSON_PANE = document.querySelector('#json'),
+    TOOLBAR = document.querySelector('#json ul'),
+    TEXTAREA = document.querySelector('#json textarea'),
+    HTML_PANE = document.querySelector('#html'),
+    // elements regeon
     WIDTH = 0,
     CONTENT_HEIGHT = 0,
     MAX_HEIGHT = 0,
@@ -219,6 +233,62 @@ var J2H = new j2h(),
     HT_CODE = 0x9,
     HT_LEN = 4;
 
+function unsetClassName( elm, name )
+{
+    var className = elm.getAttribute('class') || '';
+    
+    name = name.trim();
+    if( className ){
+        className = className.trim()
+                    .replace( /\s{1,}/g, ' ' )
+                    .replace( new RegExp( name, 'g' ), '' );
+    }
+    elm.setAttribute( 'class', className );
+    return className;
+}
+
+function setClassName( elm, name )
+{
+    var className = unsetClassName( elm, name );
+    
+    elm.setAttribute( 'class', className + ' ' + name );
+}
+
+function setDragBehavior( elm )
+{
+    var setPosition = function( elm, x, y ){
+            elm.style.left = x + 'px';
+            elm.style.top = y + 'px';
+        },
+        trackDrag = function( x, y, type, ctx )
+        {
+            if( type === TRACK_START )
+            {
+                ctx.top = elm.offsetTop - HTML_PANE.scrollTop;
+                ctx.left = elm.offsetLeft - HTML_PANE.scrollLeft;
+                ctx.ghost = document.createElement('ul');
+                ctx.ghost.setAttribute('id','dragGhost');
+                ctx.ghost.style.height = elm.clientHeight + 'px';
+                ctx.ghost.style.width = elm.clientWidth + 'px';
+                setPosition( ctx.ghost, ctx.left, ctx.top );
+                ctx.ghost.appendChild( elm.cloneNode( true ) );
+                HTML_PANE.appendChild( ctx.ghost );
+                setClassName( elm, 'dragTarget' );
+            }
+            else if( type === TRACK_PROGRESS && ( x || y ) ){
+                setPosition( ctx.ghost, ctx.left + x, ctx.top + y );
+            }
+            else if( type === TRACK_END ){
+                ctx.ghost.parentNode.removeChild( ctx.ghost );
+                unsetClassName( elm, 'dragTarget' );
+            }
+            
+            return true;
+        };
+    
+    setMouseTracker( elm, trackDrag );
+}
+
 function json2elm()
 {
     var tree;
@@ -227,8 +297,8 @@ function json2elm()
         tree = [];
     };
     this.end = function(){
-        HTML_PANE.pane.innerText = '';
-        HTML_PANE.pane.appendChild( tree[0] );
+        HTML_PANE.innerHTML = '';
+        HTML_PANE.appendChild( tree[0] );
         tree = undefined;
     };
     this.openTree = function( lv, type, key )
@@ -243,15 +313,17 @@ function json2elm()
                 keyNode = document.createElement('span'),
                 valNode = document.createElement('ul');
             
-            wrapper.setAttribute( 'data-type', type );
+            wrapper.setAttribute( 'data-node', true );
+            wrapper.setAttribute( 'data-attr', type );
             wrapper.appendChild( keyNode );
             wrapper.appendChild( valNode );
             
             keyNode.setAttribute( 'data-field', 'key' );
-            keyNode.innerText = key;
+            keyNode.innerHTML = key;
             valNode.setAttribute( 'data-field', 'val' );
             tree[lv] = valNode;
             
+            setDragBehavior( wrapper );
             parent.appendChild( wrapper );
         }
     };
@@ -273,42 +345,41 @@ function json2elm()
         wrapper.appendChild( valNode );
         
         keyNode.setAttribute( 'data-field', 'key' );
-        keyNode.innerText = key;
+        keyNode.innerHTML = key;
         valNode.setAttribute( 'data-field', 'val' );
-        valNode.innerText = val;
+        valNode.innerHTML = val;
         
+        setDragBehavior( wrapper );
         parent.appendChild( wrapper );
     };
 }
 
 function trackResizeWindow()
 {
-    WIDTH = HTML_PANE.pane.clientWidth;
-    CONTENT_HEIGHT = HTML_PANE.pane.clientHeight + JSON_PANE.pane.clientHeight;
-    MAX_HEIGHT = CONTENT_HEIGHT - JSON_PANE.toolbar.clientHeight * 2;
-    MIN_HEIGHT = JSON_PANE.toolbar.clientHeight * 2;
+    WIDTH = HTML_PANE.clientWidth;
+    CONTENT_HEIGHT = HTML_PANE.clientHeight + JSON_PANE.clientHeight;
+    MAX_HEIGHT = CONTENT_HEIGHT - TOOLBAR.clientHeight * 2;
+    MIN_HEIGHT = TOOLBAR.clientHeight * 2;
     PER_HEIGHT = CONTENT_HEIGHT / 100;
 }
 
 function trackResizeView( x, y, type, ctx )
 {
-    var htmlp = HTML_PANE.pane,
-        jsonp = JSON_PANE.pane;
-    
     if( type === TRACK_START ){
-        ctx.height = HTML_PANE.pane.clientHeight;
+        ctx.height = HTML_PANE.clientHeight;
     }
     else if( type === TRACK_PROGRESS && y )
     {
         var modify = ctx.height + y;
+        
         if( modify > MIN_HEIGHT && modify < MAX_HEIGHT ){
-            htmlp.style.height = modify + 'px';
-            jsonp.style.height = CONTENT_HEIGHT - modify + 'px';
+            HTML_PANE.style.height = modify + 'px';
+            JSON_PANE.style.height = CONTENT_HEIGHT - modify + 'px';
         }
     }
     else if( type === TRACK_END ){
-        htmlp.style.height = HTML_PANE.pane.clientHeight / PER_HEIGHT + '%';
-        jsonp.style.height = JSON_PANE.pane.clientHeight / PER_HEIGHT + '%';
+        HTML_PANE.style.height = HTML_PANE.clientHeight / PER_HEIGHT + '%';
+        JSON_PANE.style.height = JSON_PANE.clientHeight / PER_HEIGHT + '%';
     }
     
     return true;
@@ -319,12 +390,12 @@ function onLoadRawJSON( evt )
     var err;
     
     evtCancel( evt );
-    err = J2H.loadJSON( JSON_PANE.textarea.value );
+    err = J2H.loadJSON( TEXTAREA.value );
     if( err ){
         alert( err.stack );
     }
     else {
-        JSON_PANE.textarea.value = J2H.toJSON( HT_LEN );
+        TEXTAREA.value = J2H.toJSON( HT_LEN );
         J2H.traverse();
     }
     return false;
@@ -332,14 +403,13 @@ function onLoadRawJSON( evt )
 
 function initTextarea()
 {
-    var textarea = JSON_PANE.textarea,
-        tabHook = function( evt )
+    var tabHook = function( evt )
         {
             if( evt.keyCode === HT_CODE )
             {
-                var txt = textarea.value,
-                    start = textarea.selectionStart,
-                    end = textarea.selectionEnd,
+                var txt = TEXTAREA.value,
+                    start = TEXTAREA.selectionStart,
+                    end = TEXTAREA.selectionEnd,
                     cursor = start + HT_LEN;
                 
                 evtCancel( evt );
@@ -348,16 +418,16 @@ function initTextarea()
                     (new Array(HT_LEN+1)).join(' '), 
                     txt.slice( end )
                 ].join('');
-                textarea.value = txt;
+                TEXTAREA.value = txt;
                 // set caret
-                textarea.selectionStart = cursor;
-                textarea.selectionEnd = cursor;
+                TEXTAREA.selectionStart = cursor;
+                TEXTAREA.selectionEnd = cursor;
             }
             
             return false;
         };
     
-    textarea.addEventListener( 'keydown', tabHook );
+    TEXTAREA.addEventListener( 'keydown', tabHook );
 }
 
 // init interface components
@@ -369,18 +439,21 @@ function initUI()
     // track window resize event
     window.addEventListener('resize', trackResizeWindow );
     // track mouse move event on JSON_PANE.toolbar element
-    setMouseTracker( JSON_PANE.toolbar, trackResizeView );
+    setMouseTracker( TOOLBAR, trackResizeView );
     
     // set click event
-    JSON_PANE.toolbar.querySelector('a[name="apply"]')
-    .addEventListener( 'click', onLoadRawJSON );
+    TOOLBAR.querySelector('a[name="apply"]')
+           .addEventListener( 'click', onLoadRawJSON );
     // set delegator
     J2H.delegator = new json2elm();
 }
 
 initUI();
+J2H.loadJSON( TEXTAREA.value );
+J2H.traverse();
 
 </script>
+
 </body>
 </html>
 
